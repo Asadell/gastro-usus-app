@@ -5,6 +5,7 @@ const App: React.FC = () => {
   const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
   const [diagnosisResults, setDiagnosisResults] = useState<{[key: string]: number}>({});
   const [isDiagnosisComplete, setIsDiagnosisComplete] = useState<boolean>(false);
+  const [threshold, setThreshold] = useState<number>(20); // Default threshold 20%
 
   const handleSymptomToggle = (symptom: string) => {
     setSelectedSymptoms(prev => 
@@ -12,6 +13,13 @@ const App: React.FC = () => {
         ? prev.filter(s => s !== symptom) 
         : [...prev, symptom]
     );
+  };
+
+  const handleThresholdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value);
+    if (!isNaN(value) && value >= 0 && value <= 100) {
+      setThreshold(value);
+    }
   };
 
   const performDiagnosis = () => {
@@ -113,6 +121,31 @@ const App: React.FC = () => {
           
           {!isDiagnosisComplete ? (
             <>
+              {/* Threshold Setting */}
+              <div className="mt-4 mb-6 p-4 bg-blue-50 border border-blue-100 rounded-lg">
+                <h3 className="text-lg font-semibold mb-2 text-gray-800">Pengaturan Threshold:</h3>
+                <div className="flex items-center">
+                  <label htmlFor="threshold" className="mr-3 text-gray-700">
+                    Tampilkan penyakit dengan persentase di atas:
+                  </label>
+                  <div className="flex items-center">
+                    <input
+                      type="number"
+                      id="threshold"
+                      min="0"
+                      max="100"
+                      value={threshold}
+                      onChange={handleThresholdChange}
+                      className="w-16 border border-gray-300 rounded-md px-2 py-1 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <span className="ml-1 text-gray-700">%</span>
+                  </div>
+                </div>
+                <p className="mt-2 text-sm text-gray-600">
+                  Hanya penyakit dengan kemungkinan di atas threshold yang akan ditampilkan dalam hasil diagnosis.
+                </p>
+              </div>
+
               {/* Symptom Selector Component */}
               <div className="mt-4">
                 <h3 className="text-lg font-semibold mb-3 text-gray-800">Pilih Gejala yang Anda Alami:</h3>
@@ -165,11 +198,21 @@ const App: React.FC = () => {
               <div className="mt-4">
                 <h3 className="text-xl font-bold mb-4 text-blue-800">Hasil Diagnosis:</h3>
 
-                {Object.values(diagnosisResults).every(value => value === 0) ? (
+                <div className="mb-4 p-4 bg-blue-50 border border-blue-100 rounded-lg">
+                  <div className="flex items-center">
+                    <span className="text-gray-700 font-medium">Threshold yang diterapkan: </span>
+                    <span className="ml-1 font-bold text-blue-700">{threshold}%</span>
+                  </div>
+                  <p className="mt-1 text-sm text-gray-600">
+                    Hanya menampilkan penyakit dengan kemungkinan di atas threshold yang dipilih.
+                  </p>
+                </div>
+
+                {Object.values(diagnosisResults).every(value => value <= threshold) ? (
                   <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
                     <p className="text-yellow-700">
-                      Tidak ada diagnosis yang cocok dengan gejala yang Anda pilih. 
-                      Silakan coba lagi dengan gejala yang berbeda atau konsultasikan dengan dokter.
+                      Tidak ada diagnosis yang cocok dengan gejala yang Anda pilih dan threshold yang ditentukan ({threshold}%). 
+                      Silakan coba lagi dengan gejala yang berbeda atau turunkan nilai threshold.
                     </p>
                   </div>
                 ) : (
@@ -188,10 +231,14 @@ const App: React.FC = () => {
                     <div className="space-y-4">
                       {Object.entries(diagnosisResults)
                         .sort(([, percentageA], [, percentageB]) => percentageB - percentageA)
-                        .filter(([, percentage]) => percentage > 0)
+                        .filter(([, percentage]) => percentage > threshold)
                         .map(([diseaseId, percentage]) => {
                           const disease = diseases.find(d => d.id === diseaseId);
                           if (!disease) return null;
+                          
+                          const thresholdExplanation = percentage >= threshold * 1.5 
+                            ? `(${Math.round(percentage)}% jauh di atas threshold ${threshold}%)` 
+                            : `(${Math.round(percentage)}% di atas threshold ${threshold}%)`;
                           
                           return (
                             <div 
@@ -219,6 +266,10 @@ const App: React.FC = () => {
                                 ></div>
                               </div>
                               
+                              <div className="mt-1 text-xs text-gray-500">
+                                {thresholdExplanation}
+                              </div>
+                              
                               {disease.description && (
                                 <p className="mt-2 text-sm text-gray-600">
                                   {disease.description}
@@ -235,6 +286,15 @@ const App: React.FC = () => {
                           );
                         })}
                     </div>
+
+                    {Object.entries(diagnosisResults).filter(([, percentage]) => percentage > threshold).length === 0 && (
+                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                        <p className="text-yellow-700">
+                          Tidak ada diagnosis yang memenuhi threshold {threshold}%. 
+                          Silakan coba dengan threshold yang lebih rendah atau tambahkan gejala lain.
+                        </p>
+                      </div>
+                    )}
 
                     <div className="mt-6 bg-blue-50 border border-blue-100 rounded-lg p-4">
                       <p className="text-blue-700 text-sm">
