@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { symptoms, diseases, inferenceRules, Symptom, Disease } from './medicalData';
+import { symptoms, diseases, inferenceRules } from './medicalData';
 
 const App: React.FC = () => {
   const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
