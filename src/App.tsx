@@ -186,7 +186,7 @@ const App: React.FC = () => {
               <div className="mt-6 flex justify-center">
                 <button
                   onClick={performDiagnosis}
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition duration-300"
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition duration-300 hover:cursor-pointer"
                 >
                   Analisis Gejala
                 </button>
@@ -309,7 +309,7 @@ const App: React.FC = () => {
               <div className="mt-6 flex justify-center">
                 <button
                   onClick={resetDiagnosis}
-                  className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg transition duration-300"
+                  className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg transition duration-300 hover:cursor-pointer"
                 >
                   Diagnosa Baru
                 </button>
